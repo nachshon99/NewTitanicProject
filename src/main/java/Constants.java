@@ -4,6 +4,10 @@ public class Constants {
     public static final int WINDOW_HEIGHT = 700;
     public static final String[] PASSENGER_CLASS_OPTIONS = { "All", "1st", "2nd", "3rd"};
     public static final String[] PASSENGER_SEX_OPTIONS = { "All", "male", "female"};
+    public static final String[] PASSENGER_EMBARKED_OPTIONS = { "All", "C", "Q","S"};
+    public static final String EMBARKED_C = "C";
+    public static final String EMBARKED_Q = "Q";
+    public static final String EMBARKED_S = "S";
     public static final int MARGIN_FROM_TOP = 80;
     public static final int MARGIN_FROM_LEFT = 5;
     public static final int MIDDLE_WIDTH = WINDOW_WIDTH / 5;

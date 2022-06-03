@@ -1,34 +1,60 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class MainPanel extends JPanel {
     private JComboBox<String> passengerClassComboBox;
-    private JTextField passengerIdTextField;
+    private JTextField passengerIdMinTextField;
+    private JTextField passengerIdMaxTextField;
     private JTextField nameTextField;
     private JComboBox<String> sexComboBox;
     private JTextField sibSpTextField;
     private JTextField parchTextField;
     private JTextField ticketTextField;
-    private JTextField fareTextField;
+    private JTextField fareMinTextField;
+    private JTextField fareMaxTextField;
     private JTextField cabinTextField;
-    private JTextField embarkedTextField;
+    private JComboBox<String> embarkedComboBox;
     private JButton searchingButton;
-    private List<Passenger> passengerList = new ArrayList<>();
+    private JButton statisticsButton;
+    private List<Passenger> passengerList;
+
+    public static int maxId;
+    public static int minId;
+    public static String name;
+    public static int sibSp;
+    public static int parch;
+    public static String ticket;
+    public static double minFare;
+    public static double maxFare;
+    public static String cabin;
+    public static String embarked;
 
 
     public MainPanel (int x, int y, int width, int height) {
+        File file = new File(Constants.PATH_TO_DATA_FILE);
+        passengerList = new ArrayList<>();
+        try {
+            Scanner scanner = new Scanner(file);
+            int i = 0;
+            while (scanner.hasNextLine()){
+                String passenger = scanner.nextLine();
+                if(i != 0){
+                    Passenger passengerObject = new Passenger(passenger);
+                    passengerList.add(passengerObject);
+                }
+                i++;
+            }
+        }catch (FileNotFoundException e){
+            e.printStackTrace();
+        }
         this.setLayout(null);
         this.setBounds(x, y , width, height);
-
-        //read file into list
-        passengerList = readFile();
 
         //Title
         JLabel title = new JLabel("Titanic passenger Searching: ");
@@ -49,15 +75,26 @@ public class MainPanel extends JPanel {
             //do whatever you want on change
         });
 
-        //PassengerId Label
-        JLabel passengerIdLabel = new JLabel("Passenger ID: ");
+        //PassengerId Min Label
+        JLabel passengerIdLabel = new JLabel("Passenger ID: Min");
         passengerIdLabel.setBounds(x + Constants.MARGIN_FROM_LEFT, passengerClassComboBox.getY() + 2 * passengerClassComboBox.getHeight(), Constants.LABEL_WIDTH,Constants.LABEL_HEIGHT);
         this.add(passengerIdLabel);
+        //PassengerId Label
 
-        //PassengerId TextField
-        this.passengerIdTextField = new JTextField();
-        this.passengerIdTextField.setBounds(passengerIdLabel.getX() + passengerIdLabel.getWidth(), passengerIdLabel.getY(), Constants.COMBO_BOX_WIDTH,Constants.COMBO_BOX_HEIGHT);
-        this.add(this.passengerIdTextField);
+        //PassengerId Min TextField
+        this.passengerIdMinTextField = new JTextField();
+        this.passengerIdMinTextField.setBounds(passengerIdLabel.getX() + passengerIdLabel.getWidth(), passengerIdLabel.getY(), Constants.COMBO_BOX_WIDTH,Constants.COMBO_BOX_HEIGHT);
+        this.add(this.passengerIdMinTextField);
+
+        //PassengerId Max Label
+        JLabel maxIdLabel = new JLabel("Max ");
+        maxIdLabel.setBounds(passengerIdMinTextField.getX() + Constants.COMBO_BOX_WIDTH, passengerClassComboBox.getY() + 2 * passengerClassComboBox.getHeight(), Constants.LABEL_WIDTH,Constants.LABEL_HEIGHT);
+        this.add(maxIdLabel);
+
+        //PassengerId Max TextField
+        this.passengerIdMaxTextField = new JTextField();
+        this.passengerIdMaxTextField.setBounds(maxIdLabel.getX() + 30, passengerIdLabel.getY(), Constants.COMBO_BOX_WIDTH,Constants.COMBO_BOX_HEIGHT);
+        this.add(this.passengerIdMaxTextField);
 
         //Name passenger Label
         JLabel namePassengerLabel = new JLabel("Name: ");
@@ -66,7 +103,7 @@ public class MainPanel extends JPanel {
 
         //Name passenger TextField
         this.nameTextField = new JTextField();
-        this.nameTextField.setBounds(passengerIdTextField.getX(), namePassengerLabel.getY(), Constants.COMBO_BOX_WIDTH,Constants.COMBO_BOX_HEIGHT);
+        this.nameTextField.setBounds(passengerIdMinTextField.getX(), namePassengerLabel.getY(), Constants.COMBO_BOX_WIDTH,Constants.COMBO_BOX_HEIGHT);
         this.add(this.nameTextField);
 
         //Sex Label
@@ -89,7 +126,7 @@ public class MainPanel extends JPanel {
 
         //sibSp TextField
         this.sibSpTextField = new JTextField();
-        this.sibSpTextField.setBounds(passengerIdTextField.getX(),sibSpLabel.getY() , Constants.COMBO_BOX_WIDTH, Constants.COMBO_BOX_HEIGHT);
+        this.sibSpTextField.setBounds(passengerIdMinTextField.getX(),sibSpLabel.getY() , Constants.COMBO_BOX_WIDTH, Constants.COMBO_BOX_HEIGHT);
         this.add(this.sibSpTextField);
 
         //Parch Label
@@ -99,7 +136,7 @@ public class MainPanel extends JPanel {
 
         //Parch TextField
         this.parchTextField = new JTextField();
-        this.parchTextField.setBounds(passengerIdTextField.getX(),parchLabel.getY() , Constants.COMBO_BOX_WIDTH, Constants.COMBO_BOX_HEIGHT);
+        this.parchTextField.setBounds(passengerIdMinTextField.getX(),parchLabel.getY() , Constants.COMBO_BOX_WIDTH, Constants.COMBO_BOX_HEIGHT);
         this.add(this.parchTextField);
 
         //Ticket Label
@@ -109,18 +146,28 @@ public class MainPanel extends JPanel {
 
         //Ticket TextField
         this.ticketTextField = new JTextField();
-        this.ticketTextField.setBounds(passengerIdTextField.getX(),ticketLabel.getY() , Constants.COMBO_BOX_WIDTH, Constants.COMBO_BOX_HEIGHT);
+        this.ticketTextField.setBounds(passengerIdMinTextField.getX(),ticketLabel.getY() , Constants.COMBO_BOX_WIDTH, Constants.COMBO_BOX_HEIGHT);
         this.add(this.ticketTextField);
 
         //Fare Label
-        JLabel fareLabel = new JLabel("Fare: ");
+        JLabel fareLabel = new JLabel("Fare:                Min");
         fareLabel.setBounds(passengerIdLabel.getX(),ticketLabel.getY() + 2 * ticketLabel.getHeight(), Constants.LABEL_WIDTH, Constants.LABEL_HEIGHT);
         this.add(fareLabel);
 
         //Fare TextField
-        this.fareTextField = new JTextField();
-        this.fareTextField.setBounds(passengerIdTextField.getX(),fareLabel.getY() , Constants.COMBO_BOX_WIDTH, Constants.COMBO_BOX_HEIGHT);
-        this.add(this.fareTextField);
+        this.fareMinTextField = new JTextField();
+        this.fareMinTextField.setBounds(passengerIdMinTextField.getX(),fareLabel.getY() , Constants.COMBO_BOX_WIDTH, Constants.COMBO_BOX_HEIGHT);
+        this.add(this.fareMinTextField);
+
+        //Fare Max Label
+        JLabel maxFareLabel = new JLabel("Max ");
+        maxFareLabel.setBounds(passengerIdMinTextField.getX() + Constants.COMBO_BOX_WIDTH, ticketTextField.getY() + 2 * ticketTextField.getHeight(), Constants.LABEL_WIDTH,Constants.LABEL_HEIGHT);
+        this.add(maxFareLabel);
+
+        //Fare Max TextField
+        this.fareMaxTextField = new JTextField();
+        this.fareMaxTextField.setBounds(maxFareLabel.getX() + 30, fareLabel.getY(), Constants.COMBO_BOX_WIDTH,Constants.COMBO_BOX_HEIGHT);
+        this.add(this.fareMaxTextField);
 
         //Cabin Label
         JLabel cabinLabel = new JLabel("Cabin: ");
@@ -129,141 +176,186 @@ public class MainPanel extends JPanel {
 
         //Cabin TextField
         this.cabinTextField = new JTextField();
-        this.cabinTextField.setBounds(passengerIdTextField.getX(),cabinLabel.getY() , Constants.COMBO_BOX_WIDTH, Constants.COMBO_BOX_HEIGHT);
+        this.cabinTextField.setBounds(passengerIdMinTextField.getX(),cabinLabel.getY() , Constants.COMBO_BOX_WIDTH, Constants.COMBO_BOX_HEIGHT);
         this.add(this.cabinTextField);
 
-        //Ticket Label
+        //Embarked Label
         JLabel embarkedLabel = new JLabel("Embarked: ");
         embarkedLabel.setBounds(passengerIdLabel.getX(),cabinLabel.getY() + 2 * cabinLabel.getHeight(), Constants.LABEL_WIDTH, Constants.LABEL_HEIGHT);
         this.add(embarkedLabel);
 
-        //Ticket TextField
-        this.embarkedTextField = new JTextField();
-        this.embarkedTextField.setBounds(passengerIdTextField.getX(),embarkedLabel.getY() , Constants.COMBO_BOX_WIDTH, Constants.COMBO_BOX_HEIGHT);
-        this.add(this.embarkedTextField);
+        //Embarked ComboBox
+        this.embarkedComboBox = new JComboBox<>(Constants.PASSENGER_EMBARKED_OPTIONS);
+        this.embarkedComboBox.setBounds(passengerIdMinTextField.getX(),embarkedLabel.getY() , Constants.COMBO_BOX_WIDTH, Constants.COMBO_BOX_HEIGHT);
+        this.add(this.embarkedComboBox);
 
         //************
 
         //Searching Button
         this.searchingButton = new JButton("Search");
-        this.searchingButton.setBounds(Constants.MIDDLE_WIDTH + 150, Constants.MIDDLE_WIDTH + 220 , Constants.WIDTH_BUTTON, Constants.HEIGHT_BUTTON);
+        this.searchingButton.setBounds(Constants.MIDDLE_WIDTH + 150, Constants.MIDDLE_WIDTH + 180 , Constants.WIDTH_BUTTON, Constants.HEIGHT_BUTTON);
         this.add(searchingButton);
-    }
+        this.searchingButton.addActionListener((event) -> {
 
-    public static List<Passenger>  readFile(){
-        List<Passenger> passengerList = new ArrayList<>();
-        File file = new File(Constants.PATH_TO_DATA_FILE); //this is the path to the data file
-        BufferedReader reader = null;
-        String line = "";
-        try {
-            reader = new BufferedReader(new FileReader(file));
-            while ((line = reader.readLine()) != null){
-                int passengerId = Constants.INITIALIZE;
-                int survived = Constants.INITIALIZE;
-                int pClass = Constants.INITIALIZE;
-                String name = "";
-                String sex = "";
-                int age = Constants.INITIALIZE;
-                int sibSp = Constants.INITIALIZE;
-                int parch = Constants.INITIALIZE;
-                String ticket = "";
-                double fare = Constants.INITIALIZE;
-                String cabin = "";
-                String embarked = "";
-                if(Character.isDigit(line.charAt(0))) {
-                    String [] elements = line.split(",");
-                    for (int i = 0; i < elements.length; i++){
-                        switch (i){
-                            case Constants.INDEX_0: {
-                                passengerId = parse(i,elements);
-                                break;
-                            }
-                            case Constants.INDEX_1: {
-                                survived = parse(i,elements);
-                                break;
-                            }
-                            case Constants.INDEX_2: {
-                                pClass = parse(i,elements);
-                                break;
-                            }
-                            case Constants.INDEX_3: {
-                            }
-                            case Constants.INDEX_4: {
-                                name += elements[i];
-                                break;
-                            }
-                            case Constants.INDEX_5: {
-                                sex = elements[i];
-                                break;
-                            }
-                            case Constants.INDEX_6: {
-                                age = parse(i,elements);
-                                break;
-                            }
-                            case Constants.INDEX_7: {
-                                sibSp = parse(i,elements);
-                                break;
-                            }
-                            case Constants.INDEX_8: {
-                                parch = parse(i,elements);
-                                break;
-                            }
-                            case Constants.INDEX_9: {
-                                ticket = elements[i];
-                                break;
-                            }
-                            case Constants.INDEX_10: {
-                                fare = Double.parseDouble(elements[i]);
-                                break;
-                            }
-                            case Constants.INDEX_11: {
-                                cabin = elements[i];
-                                break;
-                            }
-                            case Constants.INDEX_12: {
-                                embarked = elements[i];
-                                break;
-                            }
-                        }
+            List<Passenger> sortGenderList = sortGender(this.passengerList, this.sexComboBox);
+            sortGenderList = sortPassengerId(this.passengerList, this.passengerIdMaxTextField, this.passengerIdMinTextField);
+            sortGenderList = sortFare(this.passengerList, this.fareMinTextField,this.fareMaxTextField);
+            sortGenderList = sortCabin(this.passengerList, this.cabinTextField);
+            sortGenderList = sortEmbarked(this.passengerList, this.embarkedComboBox);
+            //List<Passenger> sortGenderList = sortName(this.passengerList,this.nameTextField);
+            //List<Passenger> sortGenderList = sortClass(this.passengerList,this.passengerClassComboBox);
+            //sortGenderList = sortSibSp(this.passengerList, this.sibSpTextField);
+            //sortGenderList = sortParch(this.passengerList, this.parchTextField);
+            //sortGenderList = sortTicket(this.passengerList, this.ticketTextField);
+            long survived = sortGenderList.stream().filter(Passenger::isSurvived).count();
+            System.out.println("Total Rows: " + sortGenderList.size() +" (" + survived + " survived, " + (sortGenderList.size() - survived) + " did not)");
+        });
 
-                    }
-                    Passenger passenger = new Passenger(passengerId,survived,pClass,name,sex,age,sibSp,parch,ticket,fare,cabin,embarked);
-                    passengerList.add(passenger);
-                }
-
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }finally {
+        //Statistics Button
+        this.statisticsButton = new JButton("Create statistics file");
+        this.statisticsButton.setBounds(searchingButton.getX(), searchingButton.getY() + searchingButton.getHeight() + 50, Constants.WIDTH_BUTTON + 50, Constants.HEIGHT_BUTTON);
+        this.add(statisticsButton);
+        this.statisticsButton.addActionListener((event) -> {
             try {
-                reader.close();
-            } catch (IOException e) {
+                File output = new File("src/main/resources/Statistic.txt");
+                FileWriter fileWriter = new FileWriter(output);
+                PrintWriter printWriter = new PrintWriter(fileWriter);
+                printWriter.println("By Class: ");
+                printWriter.println("By Sex: ");
+                printWriter.println("By Age: ");
+                printWriter.println("By Sib and Parch: ");
+                printWriter.println("By Fare: ");
+                printWriter.println("By Embarked: ");
+                printWriter.close();
+            }catch (IOException e){
                 e.printStackTrace();
             }
-        }
-        return passengerList;
-    }
-
-
-    public static int parse(int i, String [] elements){
-        int result = 0;
-        try {
-            result = Integer.parseInt(elements[i]);
-        }catch (NumberFormatException e){
-        }
-        return result;
+        });
     }
 
     public static List<Passenger> sortGender(List<Passenger> passengers, JComboBox comboBox) {
-        int item = comboBox.getSelectedIndex();
-        switch (item) {
-            case 0: {
-                return passengers;
+        int selectIndex = comboBox.getSelectedIndex();
+        switch (selectIndex) {
+            case Constants.INDEX_0: {
+                break;
             }
-            case 1: {
+            case Constants.INDEX_1: {
+                return passengers.stream().filter(Passenger::isMale).collect(Collectors.toList());
             }
-            case 2: {
-                //return passengers.stream().filter(Passenger::getSexMale).collect(Collectors.toList());
+            case Constants.INDEX_2: {
+                return passengers.stream().filter(Passenger::isFemale).collect(Collectors.toList());
+            }
+        }
+        return passengers;
+    }
+    public static List<Passenger> sortPassengerId(List<Passenger> passengers, JTextField max, JTextField min) {
+        if(max.getText().length() != Constants.INITIALIZE){
+            MainPanel.maxId = Integer.parseInt(max.getText());
+        }
+        if(min.getText().length() != Constants.INITIALIZE){
+            MainPanel.minId = Integer.parseInt(min.getText());
+        }
+        if(max.getText().length() == Constants.INITIALIZE && min.getText().length() == Constants.INITIALIZE){
+            return passengers;
+        }else if(min.getText().length() != Constants.INITIALIZE && max.getText().length() == Constants.INITIALIZE){
+            return passengers.stream().filter(Passenger::isAboveIdMin).collect(Collectors.toList());
+        }else if(min.getText().length() == Constants.INITIALIZE && max.getText().length() != Constants.INITIALIZE){
+            return passengers.stream().filter(Passenger::isBelowIdMax).collect(Collectors.toList());
+        }else {
+            return passengers.stream().filter(Passenger::isAboveIdMin).filter(Passenger::isBelowIdMax).collect(Collectors.toList());
+        }
+    }
+    public static List<Passenger> sortName(List<Passenger> passengers, JTextField name){
+        MainPanel.name = name.getText();
+        if(name.getText().length() == Constants.INITIALIZE){
+            return passengers;
+        }
+        else{
+            return passengers.stream().filter(Passenger::isContainsName).collect(Collectors.toList());
+        }
+    }
+    public static List<Passenger> sortClass(List<Passenger> passengers, JComboBox pClass){
+        int selectIndex = pClass.getSelectedIndex();
+        switch (selectIndex) {
+            case Constants.INDEX_0: {
+                break;
+            }
+            case Constants.INDEX_1: {
+                return passengers.stream().filter(Passenger::isOneClass).collect(Collectors.toList());
+            }
+            case Constants.INDEX_2: {
+                return passengers.stream().filter(Passenger::isSecondClass).collect(Collectors.toList());
+            }
+            case Constants.INDEX_3: {
+                return passengers.stream().filter(Passenger::isThirdClass).collect(Collectors.toList());
+            }
+        }
+        return passengers;
+    }
+    public static List<Passenger> sortSibSp(List<Passenger> passengers, JTextField sibSp){
+        MainPanel.sibSp = Integer.valueOf(sibSp.getText());
+        if(sibSp.getText().length() == Constants.INITIALIZE){
+            return passengers;
+        }else{
+            return passengers.stream().filter(Passenger::isEqualsSibSp).collect(Collectors.toList());
+        }
+    }
+    public static List<Passenger> sortParch(List<Passenger> passengers, JTextField parch){
+        MainPanel.parch = Integer.valueOf(parch.getText());
+        if(parch.getText().length() == Constants.INITIALIZE){
+            return passengers;
+        }else {
+            return passengers.stream().filter(Passenger::isEqualsParch).collect(Collectors.toList());
+        }
+    }
+    public static List<Passenger> sortTicket(List<Passenger> passengers, JTextField ticket){
+        MainPanel.ticket = ticket.getText();
+        if(ticket.getText().length() == Constants.INITIALIZE){
+            return passengers;
+        }else {
+            return passengers.stream().filter(Passenger::isContainsTicket).collect(Collectors.toList());
+        }
+    }
+    public static List<Passenger> sortFare(List<Passenger> passengers, JTextField fareMin, JTextField fareMax){
+        if(fareMax.getText().length() != Constants.INITIALIZE) {
+            MainPanel.maxFare = Integer.valueOf(fareMax.getText());
+        }
+        if(fareMin.getText().length() != Constants.INITIALIZE){
+            MainPanel.minFare = Integer.parseInt(fareMin.getText());
+        }
+        if(fareMin.getText().length() == Constants.INITIALIZE && fareMin.getText().length() == Constants.INITIALIZE){
+            return passengers;
+        }
+        else if(fareMin.getText().length() != Constants.INITIALIZE && fareMax.getText().length() == Constants.INITIALIZE){
+            return passengers.stream().filter(Passenger::isAboveMinFare).collect(Collectors.toList());
+        }else if(fareMin.getText().length() == Constants.INITIALIZE && fareMax.getText().length() != Constants.INITIALIZE){
+            return passengers.stream().filter(Passenger::isBelowMaxFare).collect(Collectors.toList());
+        }else {
+            return passengers.stream().filter(Passenger::isAboveMinFare).filter(Passenger::isBelowMaxFare).collect(Collectors.toList());
+        }
+    }
+    public static List<Passenger> sortCabin(List<Passenger> passengers, JTextField cabin){
+        MainPanel.cabin = cabin.getText();
+        if(cabin.getText().length() == Constants.INITIALIZE){
+            return passengers;
+        }else {
+            return passengers.stream().filter(Passenger::isContainsCabin).collect(Collectors.toList());
+        }
+    }
+    public static List<Passenger> sortEmbarked(List<Passenger> passengers, JComboBox embarked){
+        int selectIndex = embarked.getSelectedIndex();
+        switch (selectIndex){
+            case Constants.INDEX_0: {
+                break;
+            }
+            case Constants.INDEX_1: {
+                return passengers.stream().filter(Passenger::isSelectedC).collect(Collectors.toList());
+            }
+            case Constants.INDEX_2: {
+                return passengers.stream().filter(Passenger::isSelectedQ).collect(Collectors.toList());
+            }
+            case Constants.INDEX_3: {
+                return passengers.stream().filter(Passenger::isSelectedS).collect(Collectors.toList());
             }
         }
         return passengers;

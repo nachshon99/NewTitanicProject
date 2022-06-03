@@ -1,10 +1,10 @@
 public class Passenger {
     private int passengerId;
-    private int survived;
+    private boolean survived;
     private int pClass;
     private String name;
     private String sex;
-    private int age;
+    private double age;
     private int sibSp;
     private int parch;
     private String ticket;
@@ -12,19 +12,193 @@ public class Passenger {
     private String cabin;
     private String embarked;
 
-    public Passenger(int passengerId, int survived, int pClass, String name, String sex, int age, int sibSp, int parch, String ticket, double fare, String cabin, String embarked) {
-        this.passengerId = passengerId;
-        this.survived = survived;
-        this.pClass = pClass;
-        this.name = getFormattedName(name);
-        this.sex = sex;
-        this.age = age;
-        this.sibSp = sibSp;
-        this.parch = parch;
-        this.ticket = ticket;
-        this.fare = fare;
-        this.cabin = cabin;
-        this.embarked = embarked;
+    public Passenger(String lineData) {
+        String[] dataItem = lineData.split(",");
+        this.passengerId = Integer.valueOf(dataItem[0]);
+        if(dataItem[1].equals("0")){
+            this.survived = false;
+        }else {
+            this.survived = true;
+        }
+        this.pClass = Integer.valueOf(dataItem[2]);
+        this.name = getFormattedName(dataItem[3] + dataItem[4]);
+        this.sex = dataItem[5];
+        if(dataItem[6].length() != Constants.INITIALIZE) {
+            this.age = Double.valueOf(dataItem[6]);
+        }
+        if(dataItem[7].length() != Constants.INITIALIZE) {
+            this.sibSp = Integer.valueOf(dataItem[7]);
+        }
+        if(dataItem[8].length() != Constants.INITIALIZE) {
+            this.parch = Integer.valueOf(dataItem[8]);
+        }
+        this.ticket = dataItem[9];
+        if(dataItem[10].length() != Constants.INITIALIZE) {
+            this.fare = Double.valueOf(dataItem[10]);
+        }
+        this.cabin = dataItem[11];
+        if(dataItem.length > 12){
+            this.embarked = dataItem[12];
+        }
+    }
+
+    public boolean isMale(){
+        boolean male = false;
+        if(this.sex.equals("male")){
+            male = true;
+        }
+        return male;
+    }
+    public boolean isFemale(){
+        boolean female = false;
+        if(this.sex.equals("female")){
+            female = true;
+        }
+        return female;
+    }
+    public boolean isAboveIdMin(){
+        boolean aboveMin = false;
+        try{
+            int minId = MainPanel.minId;
+            if(minId > 0 && this.passengerId >= minId){
+                aboveMin = true;
+            }
+        }catch (NumberFormatException e){
+        }
+        return aboveMin;
+    }
+    public boolean isBelowIdMax(){
+        boolean aboveMin = false;
+        try {
+            int maxId = MainPanel.maxId;
+            if(maxId < 891 && this.passengerId <= maxId){
+                aboveMin = true;
+            }
+        }catch (NumberFormatException e){
+        }
+        return aboveMin;
+    }
+    public boolean isContainsName(){
+        boolean contains = false;
+        boolean isValid = false;
+        if(MainPanel.name.length() != Constants.INITIALIZE){
+            for (int i = 0; i < MainPanel.name.length(); i++) {
+                if(Character.isAlphabetic(MainPanel.name.charAt(i))){
+                    isValid = true;
+                }else {
+                    isValid = false;
+                    break;
+                }
+            }
+            if(isValid){
+                if(this.getName().contains(MainPanel.name)){
+                    contains = true;
+                }
+            }
+        }
+        return contains;
+    }
+    public boolean isOneClass(){
+        boolean oneClass = false;
+        if(this.pClass == Constants.INDEX_1){
+            oneClass = true;
+        }
+        return oneClass;
+    }
+    public boolean isSecondClass(){
+        boolean secondClass = false;
+        if(this.pClass == Constants.INDEX_2){
+            secondClass = true;
+        }
+        return secondClass;
+    }
+    public boolean isThirdClass(){
+        boolean thirdClass = false;
+        if(this.pClass == Constants.INDEX_3){
+            thirdClass = true;
+        }
+        return thirdClass;
+    }
+    public boolean isEqualsSibSp(){
+        boolean equals = false;
+        if(this.sibSp == MainPanel.sibSp){
+            equals = true;
+        }
+        return equals;
+    }
+    public boolean isEqualsParch(){
+        boolean equals = false;
+        if (this.parch == MainPanel.parch){
+            equals = true;
+        }
+        return equals;
+    }
+    public boolean isContainsTicket(){
+        boolean contains = false;
+        if(this.ticket.contains(MainPanel.ticket)){
+            contains = true;
+        }
+        return contains;
+    }
+    public boolean isAboveMinFare(){
+        boolean aboveMin = false;
+        double minFare = MainPanel.minFare;
+        if(minFare > 0 && this.fare >= minFare){
+            aboveMin = true;
+        }
+        return aboveMin;
+    }
+    public boolean isBelowMaxFare(){
+        boolean belowMax = false;
+        double maxFare = MainPanel.maxFare;
+        if(this.fare <= maxFare){
+            belowMax = true;
+        }
+        return belowMax;
+    }
+    public boolean isContainsCabin(){
+        boolean contains = false;
+        if(MainPanel.cabin.length() != Constants.INITIALIZE){
+            if(this.getCabin().contains(MainPanel.cabin)){
+                contains = true;
+            }
+        }
+        return contains;
+    }
+    public boolean isSelectedC(){
+        boolean selectedC = false;
+        if(this.embarked != null){
+            if(this.embarked.equals(Constants.EMBARKED_C)){
+                selectedC = true;
+            }
+        }
+        return selectedC;
+
+    }
+    public boolean isSelectedQ(){
+        boolean selectedQ = false;
+        if(this.embarked != null){
+            if(this.embarked.equals(Constants.EMBARKED_Q)){
+                selectedQ = true;
+            }
+        }
+        return selectedQ;
+    }
+    public boolean isSelectedS(){
+        boolean selectedS = false;
+        if(this.embarked != null){
+            if(this.embarked.equals(Constants.EMBARKED_S)){
+                selectedS = true;
+            }
+        }
+        return selectedS;
+    }
+    public boolean isSurvived(){
+        boolean survived = false;
+        if(this.survived){
+            survived = true;
+        }
+        return survived;
     }
 
     public String getFormattedName(String name){
@@ -43,11 +217,11 @@ public class Passenger {
         this.passengerId = passengerId;
     }
 
-    public int getSurvived() {
+    public boolean getSurvived() {
         return survived;
     }
 
-    public void setSurvived(int survived) {
+    public void setSurvived(boolean survived) {
         this.survived = survived;
     }
 
@@ -75,11 +249,11 @@ public class Passenger {
         this.sex = sex;
     }
 
-    public int getAge() {
+    public double getAge() {
         return age;
     }
 
-    public void setAge(int age) {
+    public void setAge(double age) {
         this.age = age;
     }
 
