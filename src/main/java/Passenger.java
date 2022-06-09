@@ -1,3 +1,5 @@
+import java.net.BindException;
+
 public class Passenger {
     private int passengerId;
     private boolean survived;
@@ -12,8 +14,10 @@ public class Passenger {
     private String cabin;
     private String embarked;
 
+    private String[] dataItem;
+
     public Passenger(String lineData) {
-        String[] dataItem = lineData.split(",");
+        dataItem = lineData.split(",");
         this.passengerId = Integer.valueOf(dataItem[0]);
         if(dataItem[1].equals("0")){
             this.survived = false;
@@ -21,7 +25,7 @@ public class Passenger {
             this.survived = true;
         }
         this.pClass = Integer.valueOf(dataItem[2]);
-        this.name = getFormattedName(dataItem[3] + dataItem[4]);
+        this.name = /*dataItem[3] + dataItem[4];*/getFormattedName(dataItem[3] + dataItem[4]);
         this.sex = dataItem[5];
         if(dataItem[6].length() != Constants.INITIALIZE) {
             this.age = Double.valueOf(dataItem[6]);
@@ -43,18 +47,10 @@ public class Passenger {
     }
 
     public boolean isMale(){
-        boolean male = false;
-        if(this.sex.equals("male")){
-            male = true;
-        }
-        return male;
+        return this.sex.equals("male");
     }
     public boolean isFemale(){
-        boolean female = false;
-        if(this.sex.equals("female")){
-            female = true;
-        }
-        return female;
+        return this.sex.equals("female");
     }
     public boolean isAboveIdMin(){
         boolean aboveMin = false;
@@ -63,7 +59,7 @@ public class Passenger {
             if(minId > 0 && this.passengerId >= minId){
                 aboveMin = true;
             }
-        }catch (NumberFormatException e){
+        }catch (NumberFormatException ignored){
         }
         return aboveMin;
     }
@@ -74,7 +70,7 @@ public class Passenger {
             if(maxId < 891 && this.passengerId <= maxId){
                 aboveMin = true;
             }
-        }catch (NumberFormatException e){
+        }catch (NumberFormatException ignored){
         }
         return aboveMin;
     }
@@ -99,46 +95,22 @@ public class Passenger {
         return contains;
     }
     public boolean isOneClass(){
-        boolean oneClass = false;
-        if(this.pClass == Constants.INDEX_1){
-            oneClass = true;
-        }
-        return oneClass;
+        return this.pClass == Constants.INDEX_1;
     }
     public boolean isSecondClass(){
-        boolean secondClass = false;
-        if(this.pClass == Constants.INDEX_2){
-            secondClass = true;
-        }
-        return secondClass;
+        return this.pClass == Constants.INDEX_2;
     }
     public boolean isThirdClass(){
-        boolean thirdClass = false;
-        if(this.pClass == Constants.INDEX_3){
-            thirdClass = true;
-        }
-        return thirdClass;
+        return this.pClass == Constants.INDEX_3;
     }
     public boolean isEqualsSibSp(){
-        boolean equals = false;
-        if(this.sibSp == MainPanel.sibSp){
-            equals = true;
-        }
-        return equals;
+        return this.sibSp == MainPanel.sibSp;
     }
     public boolean isEqualsParch(){
-        boolean equals = false;
-        if (this.parch == MainPanel.parch){
-            equals = true;
-        }
-        return equals;
+        return this.parch == MainPanel.parch;
     }
     public boolean isContainsTicket(){
-        boolean contains = false;
-        if(this.ticket.contains(MainPanel.ticket)){
-            contains = true;
-        }
-        return contains;
+        return this.ticket.contains(MainPanel.ticket);
     }
     public boolean isAboveMinFare(){
         boolean aboveMin = false;
@@ -194,19 +166,76 @@ public class Passenger {
         return selectedS;
     }
     public boolean isSurvived(){
-        boolean survived = false;
-        if(this.survived){
-            survived = true;
-        }
-        return survived;
+        return this.survived;
     }
 
+    //check age
+    public boolean inRangeZeroToTen(){
+        return this.age > Constants.ZERO_AGE && this.age <= Constants.TEN_AGE;
+    }
+    public boolean inRangeElevenToTwenty(){
+        return this.age >= Constants.ELEVEN_AGE && this.age <= Constants.TWENTY_AGE;
+    }
+    public boolean inRangeTwentyOneToThirty(){
+        return this.age >= Constants.TWENTY_ONE_AGE && this.age <= Constants.THIRTY_AGE;
+    }
+    public boolean inRangeThirtyOneToForty(){
+        return this.age >= Constants.THIRTY_ONE_AGE && this.age <= Constants.FORTY_AGE;
+    }
+    public boolean inRangeFortyOneToFifty(){
+        return this.age >= Constants.FORTY_ONE && this.age <= Constants.FIFTY_AGE;
+    }
+    public boolean aboveFifthOne(){
+        return this.age >= Constants.FIFTY_ONE_AGE;
+    }
+
+    public boolean isSumParchAndSibAtLeastOne(){
+        boolean atLeastOne = false;
+        int sumParchAndSib = this.parch = this.sibSp;
+        if(sumParchAndSib >= Constants.INDEX_1){
+            atLeastOne = true;
+        }
+        return atLeastOne;
+    }
+    public boolean isNotSumParchAndSibAtLeastOne(){
+        boolean noOne = false;
+        int sumParchAndSib = this.parch = this.sibSp;
+        if(sumParchAndSib == Constants.INITIALIZE){
+            noOne = true;
+        }
+        return noOne;
+    }
+
+    public boolean isBelowTenPounds(){
+        return this.fare <= Constants.TEN_POUNDS;
+    }
+    public boolean inRangeTwelveToThirtyPounds(){
+        return this.fare >= Constants.ELEVEN_POUNDS && this.fare <= Constants.THIRTY_POUNDS;
+    }
+    public boolean isAboveThirtyPounds(){
+        return this.fare > Constants.THIRTY_POUNDS;
+    }
+
+
     public String getFormattedName(String name){
+        String lastName;
+        String firstName;
         String [] partOfName = name.split(" ");
-        String lastName = partOfName[0];
-        String firstName = partOfName[2];
-        String formatName = firstName + lastName;
-        return formatName;
+        lastName = partOfName[0];
+        firstName = name.substring(name.indexOf('.')+2).split(" ")[0];
+        firstName = subName(firstName,'\"');
+        if(firstName.charAt(0) == '('){
+            firstName = firstName.substring(1);
+        }
+        firstName = subName(firstName,')');
+        return firstName +" "+ lastName.substring(1);
+    }
+
+    public String subName (String name, char ch){
+        if(name.charAt(name.length()-1) == ch){
+            name = name.substring(0,name.length()-1);
+        }
+        return name;
     }
 
     public int getPassengerId() {
