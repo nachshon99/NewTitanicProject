@@ -215,6 +215,7 @@ public class MainPanel extends JPanel {
             sortList = sortParch(sortList, this.parchTextField);
             sortList = sortTicket(sortList, this.ticketTextField);
             long survived = sortList.stream().filter(Passenger::isSurvived).count();
+            JOptionPane.showMessageDialog(this, "Total Rows: " + sortList.size() +" (" + survived + " survived, " + (sortList.size() - survived) + " did not)");
             System.out.println("Total Rows: " + sortList.size() +" (" + survived + " survived, " + (sortList.size() - survived) + " did not)");
             try {
                 File csvFile = new File("src/main/resources/" + countFiles + ".csv");
